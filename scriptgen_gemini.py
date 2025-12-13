@@ -1,4 +1,4 @@
-# Install required libraries once:
+# Install required libraries:
 # pip install streamlit google-generativeai fpdf2
 
 import streamlit as st
@@ -10,14 +10,15 @@ st.set_page_config(page_title="ScriptGen Studio", layout="wide")
 st.title("ScriptGen Studio")
 st.write("Generate natural two speaker scripts using Gemini 2.5 Flash.")
 
-# API Key
+# API key input
 api_key = st.text_input("Enter your Gemini API Key", type="password")
 
 if api_key:
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel("gemini-2.5-flash")
 
-# Language and Dialect Dropdowns
+
+# Language and dialect dropdowns
 language_options = [
     "Spanish",
     "German",
@@ -59,13 +60,13 @@ dialect_options = {
     "English South Africa": ["South Africa"],
     "English India": ["India"],
     "Portuguese Portugal": ["Portugal"],
-    "French Canada": ["Canada"],
+    "French Canada": ["Canada"]
 }
 
 language = st.selectbox("Language", language_options)
 dialect = st.selectbox("Dialect", dialect_options.get(language, ["Default"]))
 
-# Other Inputs
+# Other user inputs
 topic = st.text_input("Topic")
 
 duration = st.selectbox("Script Duration", ["21", "41"])
@@ -83,34 +84,65 @@ domain = st.selectbox(
 generate = st.button("Generate Script")
 
 
-# Script Generation
+# UNIVERSAL SCRIPTGEN PROMPT INSERTED HERE
 def generate_script(topic, language, dialect, duration, speakers, domain):
+
+    # Map duration into target word count
     if duration == "21":
         word_target = "2100 to 2500 words"
     else:
         word_target = "4100 to 4800 words"
 
     prompt = f"""
-You are ScriptGen Studio. Create a natural two speaker conversation script.
+You are ScriptGen Studio, an AI assistant designed to generate realistic, natural, culturally accurate two-speaker conversation scripts.
 
-Rules:
-No em dashes.
-Language: {language}.
-Dialect: {dialect}.
-Speaker genders: {speakers}.
-Domain: {domain}.
-Topic: {topic}.
-Length target: {word_target}.
-Conversation must be natural with smooth turn taking.
-Label speakers as Speaker A and Speaker B.
-Return only the final script.
+Follow these rules for every script:
+
+1. Start with a natural opener appropriate to the context, such as greetings and reason for the conversation.
+
+2. End with a natural wrap-up, a final question, or a soft closing statement. Do not end abruptly.
+
+3. Use two clearly defined speakers labeled “Speaker A” and “Speaker B”, each fulfilling their role based on the selected domain.
+
+4. The tone must feel natural, spontaneous, and unscripted. Avoid robotic or overly formal sentences.
+
+5. Maintain realistic conversational flow with clarifications, small interruptions, reactions, and natural pacing.
+
+6. Adapt to the selected language and dialect. Use culturally appropriate names, phrases, references, and communication style based on the given locale.
+
+7. Include spoken pronunciations for any technical terms or abbreviations, such as metrics, acronyms, or medical values when appropriate.
+
+8. Ensure the script is always unique and not reused from previous outputs.
+
+9. Keep the tone professional, neutral, and safe. 
+   Absolutely avoid controversial topics, political content, sensitive social issues, religion, offensive content, or anything that can hurt sentiments.
+
+10. Use equal turn-taking between the speakers.
+
+11. Write with natural flow, including emotional tone when suitable.
+
+12. No em dashes. Use normal punctuation.
+
+13. The length of the script must match:
+    - {word_target}
+
+Insert the following variables into the conversation:
+
+- Topic: {topic}
+- Language: {language}
+- Dialect: {dialect}
+- Domain: {domain}
+- Speaker genders: {speakers}
+
+Generate a full conversation script following all rules above.
+Return only the script.
 """
 
     response = model.generate_content(prompt)
     return response.text
 
 
-# PDF Export (Helvetica only, works everywhere)
+# PDF export using built-in Helvetica
 def export_pdf(script_text):
     pdf = FPDF()
     pdf.add_page()
@@ -123,7 +155,7 @@ def export_pdf(script_text):
     return pdf.output(dest="S").encode("latin1", "ignore")
 
 
-# Generate Script
+# Generate script
 if generate:
     if not api_key:
         st.error("Please enter your Gemini API key.")
@@ -134,9 +166,10 @@ if generate:
             script = generate_script(topic, language, dialect, duration, speakers, domain)
 
         st.success("Script generated successfully.")
+
         st.text_area("Generated Script", script, height=500)
 
-        # Download as TXT
+        # TXT download
         st.download_button(
             label="Download as TXT",
             data=script,
@@ -144,7 +177,7 @@ if generate:
             mime="text/plain",
         )
 
-        # Download as PDF
+        # PDF download
         pdf_data = export_pdf(script)
         st.download_button(
             label="Download as PDF",
