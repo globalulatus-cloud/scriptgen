@@ -123,8 +123,15 @@ Follow these rules for every script:
 
 12. No em dashes. Use normal punctuation.
 
-13. The length of the script must match:
+13. The script length is STRICT and must match the selected duration:
+
     - {word_target}
+
+    You must meet the minimum word count for the selected time. 
+    Do not produce a short script. 
+    If the draft is too short, automatically continue the conversation and expand it naturally until the required length is reached.
+
+14. Before finalizing, internally check the approximate word count and ensure it fits within the target range.
 
 Insert the following variables into the conversation:
 
@@ -185,3 +192,4 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
+
