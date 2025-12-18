@@ -39,6 +39,7 @@ language_options = [
     "English India",
     "Portuguese Portugal",
     "French Canada",
+    "English United Kingdom",
     "English Australia"
 ]
 
@@ -62,6 +63,7 @@ dialect_options = {
     "English India": ["India"],
     "Portuguese Portugal": ["Portugal"],
     "French Canada": ["Canada"],
+    "English United Kingdom": ["United Kingdom"] ,
     "English Australia": ["Australia"]
 }
 
@@ -194,5 +196,6 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
+
 
 
