@@ -170,6 +170,11 @@ NATURAL TURN BALANCE RULES (MANDATORY)
    followed by a shorter response from the other speaker,
    then return to balanced pacing.
 
+9. For Japanese, Korean, and Chinese scripts:
+- Use natural spoken phrasing, not compressed written style.
+- Avoid excessive ellipsis or sentence truncation.
+- Allow polite expansions and confirmations typical of spoken conversation.
+
 ========================
 DOMAIN-SPECIFIC RULES
 ========================
@@ -191,16 +196,22 @@ If the selected domain is Finance:
 LENGTH AND DURATION (STRICT)
 ========================
 
-- Target length: {word_target}
+Length must be appropriate for the selected language.
 
-You MUST meet the minimum word count for the selected duration.
+- For English and European languages:
+  Target length: {word_target} (words)
+
+- For Japanese, Korean, Chinese, and Cantonese:
+  Target length:
+  - 21 minutes: approximately 3,500 to 4,500 characters
+  - 41 minutes: approximately 7,000 to 9,000 characters
+
+You MUST meet the minimum length requirement for the selected language.
 Do NOT produce a short script.
 
 If the script is too short, continue the conversation naturally until the required length is reached.
 Do NOT use filler, summaries, or monologues to increase length.
 Expand only through realistic dialogue.
-
-Before finalizing, internally verify that the word count fits within the target range.
 
 ========================
 INSERT THESE VARIABLES INTO THE SCRIPT
@@ -277,6 +288,7 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
+
 
 
 
