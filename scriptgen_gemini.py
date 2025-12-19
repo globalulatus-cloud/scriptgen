@@ -5,41 +5,61 @@ import streamlit as st
 from fpdf import FPDF
 import google.generativeai as genai
 
+# --------------------------------------------------
+# Page setup
+# --------------------------------------------------
 st.set_page_config(page_title="ScriptGen Studio", layout="wide")
 
 st.title("ScriptGen Studio")
 st.write("Generate natural two speaker scripts using Gemini 2.5 Flash.")
 
+# --------------------------------------------------
+# Helper functions
+# --------------------------------------------------
+def is_asian_language(language):
+    return language in [
+        "Japanese",
+        "Korean",
+        "Traditional Chinese",
+        "Mandarin Chinese",
+        "Cantonese Hong Kong"
+    ]
+
+
+def get_length_metrics(script_text, language):
+    clean_text = script_text.replace("\n", "").strip()
+    if is_asian_language(language):
+        return len(clean_text), "characters"
+    else:
+        return len(script_text.split()), "words"
+
+
+def get_target_range(language, duration):
+    if is_asian_language(language):
+        return (3500, 4500) if duration == "21" else (7000, 9000)
+    else:
+        return (2100, 2500) if duration == "21" else (4100, 4800)
+
+
+# --------------------------------------------------
 # API key input
+# --------------------------------------------------
 api_key = st.text_input("Enter your Gemini API Key", type="password")
 
 if api_key:
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel("gemini-2.5-flash")
 
-
-# Language and dialect dropdowns
+# --------------------------------------------------
+# Language and dialect selection
+# --------------------------------------------------
 language_options = [
-    "Spanish",
-    "German",
-    "Korean",
-    "Traditional Chinese",
-    "Spanish USA",
-    "Portuguese Brazil",
-    "English US",
-    "English Singapore",
-    "Mandarin Chinese",
-    "Japanese",
-    "English New Zealand",
-    "Cantonese Hong Kong",
-    "Spanish Mexico",
-    "Italian",
-    "French France",
-    "English South Africa",
-    "English India",
-    "Portuguese Portugal",
-    "French Canada",
-    "English United Kingdom",
+    "Spanish", "German", "Korean", "Traditional Chinese", "Spanish USA",
+    "Portuguese Brazil", "English US", "English Singapore",
+    "Mandarin Chinese", "Japanese", "English New Zealand",
+    "Cantonese Hong Kong", "Spanish Mexico", "Italian",
+    "French France", "English South Africa", "English India",
+    "Portuguese Portugal", "French Canada", "English United Kingdom",
     "English Australia"
 ]
 
@@ -63,17 +83,19 @@ dialect_options = {
     "English India": ["India"],
     "Portuguese Portugal": ["Portugal"],
     "French Canada": ["Canada"],
-    "English United Kingdom": ["United Kingdom"] ,
+    "English United Kingdom": ["United Kingdom"],
     "English Australia": ["Australia"]
 }
 
 language = st.selectbox("Language", language_options)
 dialect = st.selectbox("Dialect", dialect_options.get(language, ["Default"]))
 
-# Other user inputs
+# --------------------------------------------------
+# User inputs
+# --------------------------------------------------
 topic = st.text_input("Topic")
 
-duration = st.selectbox("Script Duration", ["21", "41"])
+duration = st.selectbox("Script Duration (minutes)", ["21", "41"])
 
 speakers = st.selectbox(
     "Speaker Combination",
@@ -87,15 +109,25 @@ domain = st.selectbox(
 
 generate = st.button("Generate Script")
 
-
-# UNIVERSAL SCRIPTGEN PROMPT INSERTED HERE
+# --------------------------------------------------
+# Script generation
+# --------------------------------------------------
 def generate_script(topic, language, dialect, duration, speakers, domain):
 
-    # Map duration into target word count
-    if duration == "21":
-        word_target = "2100 to 2500 words"
+    if is_asian_language(language):
+        if duration == "21":
+            length_target = "approximately 3,500 to 4,500 characters"
+            length_anchor = "around 4,000 characters"
+        else:
+            length_target = "approximately 7,000 to 9,000 characters"
+            length_anchor = "around 8,200 characters"
     else:
-        word_target = "4100 to 4800 words"
+        if duration == "21":
+            length_target = "2100 to 2500 words"
+            length_anchor = "around 2,300 words"
+        else:
+            length_target = "4100 to 4800 words"
+            length_anchor = "around 4,500 words"
 
     prompt = f"""
 You are ScriptGen Studio, an AI assistant designed to generate realistic, natural, culturally accurate two-speaker conversation scripts.
@@ -104,148 +136,50 @@ Your highest priority is to generate a BALANCED and NATURAL dialogue.
 The conversation must feel spoken, human, and unscripted.
 One speaker must never dominate the conversation.
 
-========================
-CORE SCRIPT REQUIREMENTS
-========================
+CORE REQUIREMENTS:
+- Use exactly two speakers: Speaker A and Speaker B
+- Strict turn alternation
+- One to three sentences per turn
+- Natural pacing and realistic flow
+- No em dashes
 
-1. The script must begin with a natural opener appropriate to the context, such as greetings and the reason for the conversation.
-
-2. The script must end with a natural wrap-up, confirmation, soft closing, or final question.
-   Never end abruptly.
-
-3. Use exactly two speakers, labeled ONLY as:
-   - Speaker A
-   - Speaker B
-
-4. The tone must feel natural, conversational, and professional.
-   Avoid robotic, lecture-style, or overly formal language.
-
-5. Maintain realistic conversational flow, including:
-   - Clarifications
-   - Small reactions
-   - Acknowledgements
-   - Natural pauses and pacing
-
-6. Adapt fully to the selected language and dialect.
-   Use culturally appropriate names, expressions, politeness norms, and communication style for the given locale.
-
-7. If technical terms, abbreviations, metrics appear, or Medicine name include natural spoken pronunciations when appropriate.
-   Example: “A one see”, “bee pee”, “K P I”.
-
-8. The script must be completely original and never reuse prior content.
-
-9. The tone must remain professional, neutral, and safe.
-   Do NOT include political content, religion, sensitive social issues, offensive language, or anything that may hurt sentiments.
-
-10. Do NOT use em dashes.
-    Use normal punctuation only.
-
-========================
-NATURAL TURN BALANCE RULES (MANDATORY)
-========================
-
-1. Speakers must strictly alternate turns.
-   Speaker A speaks, then Speaker B, then Speaker A, then Speaker B.
-
-2. No speaker may take two turns in a row.
-
-3. Each speaker may speak ONE to THREE sentences per turn.
-   Two sentences is ideal.
-   Three sentences are allowed only when it feels natural in spoken conversation.
-
-4. Turn length should vary naturally.
-   Short turns are acceptable, but repetitive one-line turns across many exchanges should be avoided.
-
-5. Explanations must be broken into back-and-forth exchanges.
-   Never deliver long explanations in a single turn.
-
-6. Both speakers must actively contribute by:
-   - Asking questions
-   - Responding meaningfully
-   - Clarifying or advancing the topic
-
-7. If the script exceeds 10 total turns, the difference in total turns between Speaker A and Speaker B must not exceed one.
-
-8. Occasionally allow one speaker to briefly elaborate,
-   followed by a shorter response from the other speaker,
-   then return to balanced pacing.
-
-9. For Japanese, Korean, and Chinese scripts:
-- Use natural spoken phrasing, not compressed written style.
-- Avoid excessive ellipsis or sentence truncation.
-- Allow polite expansions and confirmations typical of spoken conversation.
-
-========================
-DOMAIN-SPECIFIC RULES
-========================
-
-If the selected domain is Finance:
-
-- Always use the correct and locally accepted currency for the selected country or region.
-- Currency symbols, names, and formats must match real-world usage in that locale.
-  Examples:
-  - United States: USD, dollar, $
-  - United Kingdom: GBP, pound, £
-  - Eurozone countries: EUR, euro, €
-  - Japan: JPY, yen, ¥
-  - India: INR, rupee, ₹
-- Do NOT mix currencies unless explicitly required by the context.
-- Monetary amounts should sound natural when spoken aloud.
-
-========================
-LENGTH AND DURATION (STRICT)
-========================
-
-Length must be appropriate for the selected language.
-
-- For English and European languages:
-  Target length: {word_target} (words)
-
-- For Japanese, Korean, Chinese, and Cantonese:
-  Target length:
-  - 21 minutes: approximately 3,500 to 4,500 characters
-  - 41 minutes: approximately 7,000 to 9,000 characters
-
-You MUST meet the minimum length requirement for the selected language.
-Do NOT produce a short script.
-
-If the script is too short, continue the conversation naturally until the required length is reached.
-Do NOT use filler, summaries, or monologues to increase length.
-Expand only through realistic dialogue.
-
-========================
-INSERT THESE VARIABLES INTO THE SCRIPT
-========================
-
-- Topic: {topic}
+LANGUAGE AND LOCALE:
 - Language: {language}
 - Dialect: {dialect}
-- Domain: {domain}
-- Speaker genders: {speakers}
+- Use culturally appropriate expressions and politeness
 
-========================
-FINAL SELF-CHECK (MANDATORY)
-========================
+DOMAIN:
+- {domain}
 
-Before producing the final output, internally verify that:
+If Finance is selected:
+- Use the correct local currency only
+- Do not mix currencies
 
-- Speakers alternate perfectly throughout
-- Turn length varies naturally without monologues
-- No speaker dominates the conversation
-- Both speakers contribute evenly and meaningfully
-- Opening and closing feel natural and complete
-- Currency usage is correct when Finance is selected
-- The word count meets the required range
+LENGTH REQUIREMENT:
+Target length: {length_target}
+Aim for a total length of {length_anchor}
 
-Only output the final conversation script.
-Do not include explanations, notes, or validation text.
+If the script is too short, continue naturally until the required length is reached.
+Do not pad with summaries or monologues.
+
+TOPIC:
+{topic}
+
+SPEAKER GENDERS:
+{speakers}
+
+Begin with a natural opener.
+End with a natural closing.
+Return only the conversation script.
 """
 
     response = model.generate_content(prompt)
     return response.text
 
 
-# PDF export using built-in Helvetica
+# --------------------------------------------------
+# PDF export
+# --------------------------------------------------
 def export_pdf(script_text):
     pdf = FPDF()
     pdf.add_page()
@@ -258,7 +192,9 @@ def export_pdf(script_text):
     return pdf.output(dest="S").encode("latin1", "ignore")
 
 
-# Generate script
+# --------------------------------------------------
+# Generate and display script
+# --------------------------------------------------
 if generate:
     if not api_key:
         st.error("Please enter your Gemini API key.")
@@ -272,7 +208,28 @@ if generate:
 
         st.text_area("Generated Script", script, height=500)
 
-        # TXT download
+        # --------------------
+        # Live length feedback
+        # --------------------
+        count, unit = get_length_metrics(script, language)
+        min_len, max_len = get_target_range(language, duration)
+
+        st.markdown("### 📏 Script Length Check")
+        st.write(f"**Detected length:** {count:,} {unit}")
+        st.write(f"**Target range:** {min_len:,} to {max_len:,} {unit}")
+
+        if count < min_len:
+            st.error("❌ Script is too short for the selected duration.")
+        elif count > max_len:
+            st.warning("⚠️ Script exceeds the recommended length.")
+        else:
+            st.success("✅ Script length is within the target range.")
+
+        st.progress(min(count / max_len, 1.0))
+
+        # --------------------
+        # Downloads
+        # --------------------
         st.download_button(
             label="Download as TXT",
             data=script,
@@ -280,7 +237,6 @@ if generate:
             mime="text/plain",
         )
 
-        # PDF download
         pdf_data = export_pdf(script)
         st.download_button(
             label="Download as PDF",
@@ -288,9 +244,3 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
-
-
-
-
-
-
