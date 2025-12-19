@@ -36,14 +36,29 @@ def get_length_metrics(script_text, language):
 
 def get_target_range(language, duration):
     if is_asian_language(language):
-        return (3500, 4500) if duration == "21" else (7000, 9000)
+        if duration == "21":
+            return (3500, 4500)
+        elif duration == "31":
+            return (5200, 6500)
+        elif duration == "41":
+            return (7000, 9000)
+        elif duration == "55":
+            return (9500, 11500)
     else:
-        return (2100, 2500) if duration == "21" else (4100, 4800)
+        if duration == "21":
+            return (2100, 2500)
+        elif duration == "31":
+            return (3100, 3600)
+        elif duration == "41":
+            return (4100, 4800)
+        elif duration == "55":
+            return (5500, 6500)
 
 
 # --------------------------------------------------
 # API key input
 # --------------------------------------------------
+model = None
 api_key = st.text_input("Enter your Gemini API Key", type="password")
 
 if api_key:
@@ -95,7 +110,10 @@ dialect = st.selectbox("Dialect", dialect_options.get(language, ["Default"]))
 # --------------------------------------------------
 topic = st.text_input("Topic")
 
-duration = st.selectbox("Script Duration (minutes)", ["21", "41"])
+duration = st.selectbox(
+    "Script Duration (minutes)",
+    ["21", "31", "41", "55"]
+)
 
 speakers = st.selectbox(
     "Speaker Combination",
@@ -118,16 +136,28 @@ def generate_script(topic, language, dialect, duration, speakers, domain):
         if duration == "21":
             length_target = "approximately 3,500 to 4,500 characters"
             length_anchor = "around 4,000 characters"
-        else:
+        elif duration == "31":
+            length_target = "approximately 5,200 to 6,500 characters"
+            length_anchor = "around 6,000 characters"
+        elif duration == "41":
             length_target = "approximately 7,000 to 9,000 characters"
             length_anchor = "around 8,200 characters"
+        elif duration == "55":
+            length_target = "approximately 9,500 to 11,500 characters"
+            length_anchor = "around 10,500 characters"
     else:
         if duration == "21":
             length_target = "2100 to 2500 words"
             length_anchor = "around 2,300 words"
-        else:
+        elif duration == "31":
+            length_target = "3100 to 3600 words"
+            length_anchor = "around 3,300 words"
+        elif duration == "41":
             length_target = "4100 to 4800 words"
             length_anchor = "around 4,500 words"
+        elif duration == "55":
+            length_target = "5500 to 6500 words"
+            length_anchor = "around 6,000 words"
 
     prompt = f"""
 You are ScriptGen Studio, an AI assistant designed to generate realistic, natural, culturally accurate two-speaker conversation scripts.
@@ -198,11 +228,20 @@ def export_pdf(script_text):
 if generate:
     if not api_key:
         st.error("Please enter your Gemini API key.")
+    elif model is None:
+        st.error("Model not initialized.")
     elif not topic:
         st.error("Please enter a topic.")
     else:
         with st.spinner("Generating script... please wait"):
-            script = generate_script(topic, language, dialect, duration, speakers, domain)
+            script = generate_script(
+                topic,
+                language,
+                dialect,
+                duration,
+                speakers,
+                domain
+            )
 
         st.success("Script generated successfully.")
 
