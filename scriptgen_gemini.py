@@ -63,7 +63,12 @@ api_key = st.text_input("Enter your Gemini API Key", type="password")
 
 if api_key:
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-2.5-flash")
+    # Configure with higher token limit
+    generation_config = genai.types.GenerationConfig(
+        max_output_tokens=8192,
+        temperature=1.0,
+    )
+    model = genai.GenerativeModel("gemini-2.5-flash", generation_config=generation_config)
 
 # --------------------------------------------------
 # Language and dialect selection
@@ -128,170 +133,223 @@ domain = st.selectbox(
 generate = st.button("Generate Script")
 
 # --------------------------------------------------
-# Script generation with iterative length checking
+# Script generation with aggressive extension
 # --------------------------------------------------
 def generate_script(topic, language, dialect, duration, speakers, domain):
 
     if is_asian_language(language):
         if duration == "21":
             length_target = "approximately 3,500 to 4,500 characters"
-            length_anchor = "4,000 characters"
+            length_anchor = "4,200 characters"
             min_target = 3500
             max_target = 4500
+            optimal_target = 4200
         elif duration == "31":
             length_target = "approximately 5,200 to 6,500 characters"
             length_anchor = "6,000 characters"
             min_target = 5200
             max_target = 6500
+            optimal_target = 6000
         elif duration == "41":
             length_target = "approximately 7,000 to 9,000 characters"
             length_anchor = "8,200 characters"
             min_target = 7000
             max_target = 9000
+            optimal_target = 8200
         elif duration == "55":
             length_target = "approximately 9,500 to 11,500 characters"
-            length_anchor = "10,500 characters"
+            length_anchor = "10,800 characters"
             min_target = 9500
             max_target = 11500
+            optimal_target = 10800
         unit = "characters"
     else:
         if duration == "21":
             length_target = "2100 to 2500 words"
-            length_anchor = "2,300 words"
+            length_anchor = "2,400 words"
             min_target = 2100
             max_target = 2500
+            optimal_target = 2400
         elif duration == "31":
             length_target = "3100 to 3600 words"
-            length_anchor = "3,300 words"
+            length_anchor = "3,400 words"
             min_target = 3100
             max_target = 3600
+            optimal_target = 3400
         elif duration == "41":
             length_target = "4100 to 4800 words"
-            length_anchor = "4,500 words"
+            length_anchor = "4,600 words"
             min_target = 4100
             max_target = 4800
+            optimal_target = 4600
         elif duration == "55":
             length_target = "5500 to 6500 words"
-            length_anchor = "6,000 words"
+            length_anchor = "6,200 words"
             min_target = 5500
             max_target = 6500
+            optimal_target = 6200
         unit = "words"
 
+    # Base prompt with EXTREME emphasis on length
     prompt = f"""
-You are ScriptGen Studio, an AI assistant designed to generate realistic, natural, culturally accurate two-speaker conversation scripts.
+🚨🚨🚨 CRITICAL REQUIREMENT 🚨🚨🚨
 
-⚠️ CRITICAL LENGTH REQUIREMENT ⚠️
-YOU MUST generate a script of EXACTLY {length_target}.
-This is NON-NEGOTIABLE. Target approximately {length_anchor}.
+LENGTH IS MANDATORY: {length_target}
+TARGET: {length_anchor}
+MINIMUM ACCEPTABLE: {min_target} {unit}
 
-The conversation MUST continue naturally until you reach this length.
-DO NOT stop early. DO NOT summarize prematurely.
-Keep the dialogue flowing with natural back-and-forth exchanges.
+YOU MUST WRITE A LONG, DETAILED CONVERSATION.
+THIS IS NOT OPTIONAL. DO NOT STOP UNTIL YOU REACH {optimal_target} {unit}.
 
-CORE REQUIREMENTS:
-- Use exactly two speakers: Speaker A and Speaker B
-- Strict turn alternation (A, B, A, B...)
-- One to three sentences per turn
-- Natural pacing and realistic flow
-- No em dashes (—)
-- Balanced dialogue - neither speaker dominates
+You are generating a {duration}-minute conversation script between two speakers.
+A {duration}-minute conversation requires EXTENSIVE dialogue.
 
-LANGUAGE AND LOCALE:
-- Language: {language}
-- Dialect: {dialect}
-- Use culturally appropriate expressions and politeness levels
+═══════════════════════════════════════════════════════
 
-DOMAIN:
-- {domain}
+TASK: Generate a natural two-speaker conversation script
 
-DOMAIN-SPECIFIC RULES:
+LANGUAGE: {language}
+DIALECT: {dialect}
+DOMAIN: {domain}
+TOPIC: {topic}
+SPEAKERS: {speakers}
+
+REQUIRED FORMAT:
+Speaker A: [dialogue]
+Speaker B: [dialogue]
+Speaker A: [dialogue]
+Speaker B: [dialogue]
+... continue for MANY exchanges ...
+
+CONVERSATION REQUIREMENTS:
+✓ Strict alternation between speakers
+✓ Natural, realistic dialogue
+✓ 1-3 sentences per turn
+✓ Include small talk, clarifications, and natural digressions
+✓ Explore multiple aspects of the topic
+✓ Add realistic details and examples
+✓ Use natural conversation fillers when appropriate
+
 {get_domain_rules(domain, dialect)}
 
-TOPIC:
-{topic}
+LENGTH STRATEGY TO REACH {optimal_target} {unit}:
+1. Start with proper introductions and greetings (100-200 {unit})
+2. Discuss the main topic with extensive back-and-forth (70% of content)
+3. Include natural tangents and follow-up questions
+4. Add concrete examples and detailed explanations
+5. Discuss implications, alternatives, and related topics
+6. Natural wrap-up and closing (100-200 {unit})
 
-SPEAKER GENDERS:
-{speakers}
+⚠️ DO NOT:
+- Rush to conclude
+- Summarize at the end
+- Use stage directions or descriptions
+- Stop before reaching {min_target} {unit}
 
-STRUCTURE:
-1. Begin with a natural, contextually appropriate greeting
-2. Develop the conversation naturally around the topic
-3. Include realistic pauses, clarifications, and natural speech patterns
-4. Continue the dialogue until you reach {length_anchor}
-5. End with a natural closing only after meeting the length requirement
-
-FORBIDDEN:
-- Do NOT use narrative descriptions like *pauses* or [smiles]
-- Do NOT include stage directions
-- Do NOT add meta-commentary
-- Do NOT summarize at the end
-
-Return ONLY the conversation script with Speaker A and Speaker B labels.
-REMEMBER: The script MUST be {length_target}. Keep writing until you reach this target.
+WRITE A COMPREHENSIVE, DETAILED CONVERSATION OF AT LEAST {min_target} {unit}.
+Start now:
 """
 
     # Initial generation
     response = model.generate_content(prompt)
-    script = response.text
+    script = response.text.strip()
     
-    # Check length and extend if needed
+    # Aggressive extension loop
     current_length, _ = get_length_metrics(script, language)
     attempts = 0
-    max_attempts = 3
+    max_attempts = 6  # Increased attempts
+    
+    progress_placeholder = st.empty()
     
     while current_length < min_target and attempts < max_attempts:
-        st.info(f"Script length: {current_length:,} {unit}. Extending... (Attempt {attempts + 1}/{max_attempts})")
+        attempts += 1
+        shortfall = min_target - current_length
         
+        progress_placeholder.info(
+            f"📝 Extending script... Length: {current_length:,}/{min_target:,} {unit} "
+            f"(Need {shortfall:,} more) - Attempt {attempts}/{max_attempts}"
+        )
+        
+        # More aggressive extension prompt
         extension_prompt = f"""
-Continue the following conversation naturally. The script is currently too short.
+CONTINUE THE CONVERSATION BELOW. 
 
-Current script length: {current_length} {unit}
-Target length: {length_target}
-You need to add approximately {min_target - current_length} more {unit}.
+CURRENT LENGTH: {current_length} {unit}
+REQUIRED LENGTH: {min_target} {unit}
+YOU NEED TO ADD: {shortfall} {unit}
 
-IMPORTANT:
-- Continue with the next speaker's turn (maintain alternation)
-- Keep the same natural tone and topic
-- Do NOT summarize or rush to conclude
-- Let the conversation develop naturally
-- Only end when you've added enough content
+This is a {duration}-minute conversation - it MUST be much longer.
 
-Current script:
+INSTRUCTIONS:
+- Continue with the NEXT speaker's turn (maintain alternation)
+- Add {min(shortfall + 500, 2000)} more {unit} of dialogue
+- Introduce new but related subtopics
+- Ask follow-up questions
+- Share additional examples and details
+- Keep the conversation flowing naturally
+- DO NOT conclude yet - there's still more to discuss
+
+Current conversation:
 {script}
 
-Continue the conversation:
+Continue naturally with the next speaker:
 """
         
         extension_response = model.generate_content(extension_prompt)
-        extension = extension_response.text
+        extension = extension_response.text.strip()
         
-        # Merge the extension
-        script = script.rstrip() + "\n\n" + extension.lstrip()
+        # Clean up the extension (remove any speaker labels if it repeats the last line)
+        lines = script.split('\n')
+        extension_lines = extension.split('\n')
+        
+        # Merge without duplication
+        if lines[-1].strip() and extension_lines[0].strip():
+            # Check if extension starts with a speaker label
+            if 'Speaker A:' in extension_lines[0] or 'Speaker B:' in extension_lines[0]:
+                script = script + "\n" + extension
+            else:
+                # Extension is continuing mid-sentence, append to last line
+                script = script + " " + extension
+        else:
+            script = script + "\n" + extension
+        
         current_length, _ = get_length_metrics(script, language)
-        attempts += 1
-
+    
+    progress_placeholder.empty()
+    
+    # Final warning if still too short
+    if current_length < min_target:
+        st.warning(
+            f"⚠️ Reached maximum extension attempts. "
+            f"Script is {current_length:,} {unit} (target: {min_target:,}+). "
+            f"Try regenerating or adjust your topic to allow for more discussion."
+        )
+    
     return script
 
 
 def get_domain_rules(domain, dialect):
     rules = {
         "Finance": f"""
-- Use the correct local currency for {dialect} ONLY
-- Do NOT mix currencies
-- Use realistic financial scenarios
-- Include specific numbers where appropriate
+DOMAIN RULES - FINANCE:
+- Currency: Use ONLY the local currency for {dialect}
+- Include: account numbers, transaction amounts, dates
+- Topics: savings, loans, investments, budgeting, financial planning
+- Be specific with numbers and financial terms
 """,
         "Healthcare": """
-- Use appropriate medical terminology
+DOMAIN RULES - HEALTHCARE:
+- Use: medical terminology, symptoms, treatments
+- Include: appointment scheduling, test results, medication
+- Topics: patient care, medical history, health concerns
 - Show empathy and professionalism
-- Include realistic patient concerns
-- Maintain privacy awareness
 """,
         "Call center": """
-- Include authentic customer service language
-- Show problem-solving approaches
-- Use realistic customer inquiries
-- Maintain professional courtesy
+DOMAIN RULES - CALL CENTER:
+- Include: account verification, issue description, troubleshooting
+- Topics: billing, technical support, complaints, inquiries
+- Use: professional customer service language
+- Add: realistic pauses for "checking systems"
 """
     }
     return rules.get(domain, "")
@@ -323,53 +381,4 @@ if generate:
     elif not topic:
         st.error("Please enter a topic.")
     else:
-        with st.spinner("Generating script... please wait"):
-            script = generate_script(
-                topic,
-                language,
-                dialect,
-                duration,
-                speakers,
-                domain
-            )
-
-        st.success("Script generated successfully.")
-
-        st.text_area("Generated Script", script, height=500)
-
-        # --------------------
-        # Live length feedback
-        # --------------------
-        count, unit = get_length_metrics(script, language)
-        min_len, max_len = get_target_range(language, duration)
-
-        st.markdown("### 📏 Script Length Check")
-        st.write(f"**Detected length:** {count:,} {unit}")
-        st.write(f"**Target range:** {min_len:,} to {max_len:,} {unit}")
-
-        if count < min_len:
-            st.error("❌ Script is too short for the selected duration.")
-        elif count > max_len:
-            st.warning("⚠️ Script exceeds the recommended length.")
-        else:
-            st.success("✅ Script length is within the target range.")
-
-        st.progress(min(count / max_len, 1.0))
-
-        # --------------------
-        # Downloads
-        # --------------------
-        st.download_button(
-            label="Download as TXT",
-            data=script,
-            file_name="script.txt",
-            mime="text/plain",
-        )
-
-        pdf_data = export_pdf(script)
-        st.download_button(
-            label="Download as PDF",
-            data=pdf_data,
-            file_name="script.pdf",
-            mime="application/pdf",
-        )
+        with st.spinner("🎬 Generating script... This may take a minute for longer
