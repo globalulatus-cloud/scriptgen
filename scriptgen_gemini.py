@@ -128,69 +128,84 @@ domain = st.selectbox(
 generate = st.button("Generate Script")
 
 # --------------------------------------------------
-# Script generation
+# Script generation with iterative length checking
 # --------------------------------------------------
 def generate_script(topic, language, dialect, duration, speakers, domain):
 
     if is_asian_language(language):
         if duration == "21":
             length_target = "approximately 3,500 to 4,500 characters"
-            length_anchor = "around 4,000 characters"
+            length_anchor = "4,000 characters"
+            min_target = 3500
+            max_target = 4500
         elif duration == "31":
             length_target = "approximately 5,200 to 6,500 characters"
-            length_anchor = "around 6,000 characters"
+            length_anchor = "6,000 characters"
+            min_target = 5200
+            max_target = 6500
         elif duration == "41":
             length_target = "approximately 7,000 to 9,000 characters"
-            length_anchor = "around 8,200 characters"
+            length_anchor = "8,200 characters"
+            min_target = 7000
+            max_target = 9000
         elif duration == "55":
             length_target = "approximately 9,500 to 11,500 characters"
-            length_anchor = "around 10,500 characters"
+            length_anchor = "10,500 characters"
+            min_target = 9500
+            max_target = 11500
+        unit = "characters"
     else:
         if duration == "21":
             length_target = "2100 to 2500 words"
-            length_anchor = "around 2,300 words"
+            length_anchor = "2,300 words"
+            min_target = 2100
+            max_target = 2500
         elif duration == "31":
             length_target = "3100 to 3600 words"
-            length_anchor = "around 3,300 words"
+            length_anchor = "3,300 words"
+            min_target = 3100
+            max_target = 3600
         elif duration == "41":
             length_target = "4100 to 4800 words"
-            length_anchor = "around 4,500 words"
+            length_anchor = "4,500 words"
+            min_target = 4100
+            max_target = 4800
         elif duration == "55":
             length_target = "5500 to 6500 words"
-            length_anchor = "around 6,000 words"
+            length_anchor = "6,000 words"
+            min_target = 5500
+            max_target = 6500
+        unit = "words"
 
     prompt = f"""
 You are ScriptGen Studio, an AI assistant designed to generate realistic, natural, culturally accurate two-speaker conversation scripts.
 
-Your highest priority is to generate a BALANCED and NATURAL dialogue.
-The conversation must feel spoken, human, and unscripted.
-One speaker must never dominate the conversation.
+⚠️ CRITICAL LENGTH REQUIREMENT ⚠️
+YOU MUST generate a script of EXACTLY {length_target}.
+This is NON-NEGOTIABLE. Target approximately {length_anchor}.
+
+The conversation MUST continue naturally until you reach this length.
+DO NOT stop early. DO NOT summarize prematurely.
+Keep the dialogue flowing with natural back-and-forth exchanges.
 
 CORE REQUIREMENTS:
 - Use exactly two speakers: Speaker A and Speaker B
-- Strict turn alternation
+- Strict turn alternation (A, B, A, B...)
 - One to three sentences per turn
 - Natural pacing and realistic flow
-- No em dashes
+- No em dashes (—)
+- Balanced dialogue - neither speaker dominates
 
 LANGUAGE AND LOCALE:
 - Language: {language}
 - Dialect: {dialect}
-- Use culturally appropriate expressions and politeness
+- Use culturally appropriate expressions and politeness levels
 
 DOMAIN:
 - {domain}
 
-If Finance is selected:
-- Use the correct local currency only
-- Do not mix currencies
-
-LENGTH REQUIREMENT:
-Target length: {length_target}
-Aim for a total length of {length_anchor}
-
-If the script is too short, continue naturally until the required length is reached.
-Do not pad with summaries or monologues.
+DOMAIN-SPECIFIC RULES:
+{get_domain_rules(domain, dialect)}
 
 TOPIC:
 {topic}
@@ -198,13 +213,88 @@ TOPIC:
 SPEAKER GENDERS:
 {speakers}
 
-Begin with a natural opener.
-End with a natural closing.
-Return only the conversation script.
+STRUCTURE:
+1. Begin with a natural, contextually appropriate greeting
+2. Develop the conversation naturally around the topic
+3. Include realistic pauses, clarifications, and natural speech patterns
+4. Continue the dialogue until you reach {length_anchor}
+5. End with a natural closing only after meeting the length requirement
+
+FORBIDDEN:
+- Do NOT use narrative descriptions like *pauses* or [smiles]
+- Do NOT include stage directions
+- Do NOT add meta-commentary
+- Do NOT summarize at the end
+
+Return ONLY the conversation script with Speaker A and Speaker B labels.
+REMEMBER: The script MUST be {length_target}. Keep writing until you reach this target.
 """
 
+    # Initial generation
     response = model.generate_content(prompt)
-    return response.text
+    script = response.text
+    
+    # Check length and extend if needed
+    current_length, _ = get_length_metrics(script, language)
+    attempts = 0
+    max_attempts = 3
+    
+    while current_length < min_target and attempts < max_attempts:
+        st.info(f"Script length: {current_length:,} {unit}. Extending... (Attempt {attempts + 1}/{max_attempts})")
+        
+        extension_prompt = f"""
+Continue the following conversation naturally. The script is currently too short.
+
+Current script length: {current_length} {unit}
+Target length: {length_target}
+You need to add approximately {min_target - current_length} more {unit}.
+
+IMPORTANT:
+- Continue with the next speaker's turn (maintain alternation)
+- Keep the same natural tone and topic
+- Do NOT summarize or rush to conclude
+- Let the conversation develop naturally
+- Only end when you've added enough content
+
+Current script:
+{script}
+
+Continue the conversation:
+"""
+        
+        extension_response = model.generate_content(extension_prompt)
+        extension = extension_response.text
+        
+        # Merge the extension
+        script = script.rstrip() + "\n\n" + extension.lstrip()
+        current_length, _ = get_length_metrics(script, language)
+        attempts += 1
+
+    return script
+
+
+def get_domain_rules(domain, dialect):
+    rules = {
+        "Finance": f"""
+- Use the correct local currency for {dialect} ONLY
+- Do NOT mix currencies
+- Use realistic financial scenarios
+- Include specific numbers where appropriate
+""",
+        "Healthcare": """
+- Use appropriate medical terminology
+- Show empathy and professionalism
+- Include realistic patient concerns
+- Maintain privacy awareness
+""",
+        "Call center": """
+- Include authentic customer service language
+- Show problem-solving approaches
+- Use realistic customer inquiries
+- Maintain professional courtesy
+"""
+    }
+    return rules.get(domain, "")
 
 
 # --------------------------------------------------
