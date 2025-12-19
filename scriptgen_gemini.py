@@ -100,44 +100,74 @@ def generate_script(topic, language, dialect, duration, speakers, domain):
     prompt = f"""
 You are ScriptGen Studio, an AI assistant designed to generate realistic, natural, culturally accurate two-speaker conversation scripts.
 
-Follow these rules for every script:
+Your highest priority is to generate a BALANCED, EVENLY SPOKEN dialogue.
+One speaker must never dominate the conversation.
 
-1. Start with a natural opener appropriate to the context, such as greetings and reason for the conversation.
+========================
+MANDATORY SCRIPT RULES
+========================
 
-2. End with a natural wrap-up, a final question, or a soft closing statement. Do not end abruptly.
+1. The script must begin with a natural opener appropriate to the context, such as greetings and the reason for the conversation.
 
-3. Use two clearly defined speakers labeled “Speaker A” and “Speaker B”, each fulfilling their role based on the selected domain.
+2. The script must end with a natural wrap-up, soft closing, confirmation, or final question.
+   Never end abruptly.
 
-4. The tone must feel natural, spontaneous, and unscripted. Avoid robotic or overly formal sentences.
+3. Use exactly two speakers, labeled ONLY as:
+   - Speaker A
+   - Speaker B
 
-5. Maintain realistic conversational flow with clarifications, small interruptions, reactions, and natural pacing.
+4. The tone must feel natural, spontaneous, and unscripted.
+   Avoid robotic, lecture-style, or overly formal language.
 
-6. Adapt to the selected language and dialect. Use culturally appropriate names, phrases, references, and communication style based on the given locale.
+5. Maintain realistic conversational flow, including clarifications, acknowledgements, small reactions, and natural pacing.
 
-7. Include spoken pronunciations for any technical terms or abbreviations, such as metrics, acronyms, or medical values when appropriate.
+6. Adapt fully to the selected language and dialect.
+   Use culturally appropriate names, expressions, politeness, and communication style.
 
-8. Ensure the script is always unique and not reused from previous outputs.
+7. If technical terms, abbreviations, or metrics appear, include natural spoken pronunciations when appropriate.
+   Example: “A one see”, “bee pee”, “K P I”.
 
-9. Keep the tone professional, neutral, and safe. 
-   Absolutely avoid controversial topics, political content, sensitive social issues, religion, offensive content, or anything that can hurt sentiments.
+8. The script must be completely original and never reuse prior content.
 
-10. Use equal turn-taking between the speakers.
+9. The tone must remain professional, neutral, and safe.
+   Do NOT include political content, religion, sensitive social issues, offensive language, or anything that may hurt sentiments.
 
-11. Write with natural flow, including emotional tone when suitable.
+10. Do NOT use em dashes.
+    Use normal punctuation only.
 
-12. No em dashes. Use normal punctuation.
+========================
+STRICT TURN BALANCE RULES
+========================
 
-13. The script length is STRICT and must match the selected duration:
+1. Speakers must strictly alternate turns.
+   Speaker A, then Speaker B, then Speaker A, then Speaker B.
 
-    - {word_target}
+2. No speaker may take two turns in a row.
 
-    You must meet the minimum word count for the selected time. 
-    Do not produce a short script. 
-    If the draft is too short, automatically continue the conversation and expand it naturally until the required length is reached.
+3. Each speaker may speak a maximum of TWO sentences per turn.
 
-14. Before finalizing, internally check the approximate word count and ensure it fits within the target range.
+4. No sentence may exceed 25 words.
 
-Insert the following variables into the conversation:
+5. Explanations must be broken into short back-and-forth exchanges.
+   Never explain multiple ideas in a single turn.
+
+6. Both speakers must ask questions, respond meaningfully, and advance the conversation.
+
+7. If the script exceeds 10 turns, the difference in total turns between Speaker A and Speaker B must not exceed ONE.
+
+========================
+LENGTH AND DURATION (STRICT)
+========================
+
+- Target length: {word_target}
+
+You MUST meet the minimum word count.
+If the script is too short, continue the conversation naturally until the required length is reached.
+Do NOT use filler, summaries, or monologues to increase length.
+
+========================
+INSERT THESE VARIABLES
+========================
 
 - Topic: {topic}
 - Language: {language}
@@ -145,8 +175,19 @@ Insert the following variables into the conversation:
 - Domain: {domain}
 - Speaker genders: {speakers}
 
-Generate a full conversation script following all rules above.
-Return only the script.
+========================
+FINAL SELF-CHECK
+========================
+
+Before producing the final output, internally verify:
+- Perfect turn alternation
+- No speaker exceeds two sentences per turn
+- Sentence length stays under 25 words
+- Both speakers contribute evenly
+- Natural opening and closing are present
+- Word count meets the required range
+
+Only output the final conversation script.
 """
 
     response = model.generate_content(prompt)
@@ -196,6 +237,7 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
+
 
 
 
