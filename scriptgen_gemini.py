@@ -75,7 +75,7 @@ language_options = [
     "Cantonese Hong Kong", "Spanish Mexico", "Italian",
     "French France", "English South Africa", "English India",
     "Portuguese Portugal", "French Canada", "English United Kingdom",
-    "English Australia"
+    "English Australia", "German Switzerland"
 ]
 
 dialect_options = {
@@ -99,7 +99,8 @@ dialect_options = {
     "Portuguese Portugal": ["Portugal"],
     "French Canada": ["Canada"],
     "English United Kingdom": ["United Kingdom"],
-    "English Australia": ["Australia"]
+    "English Australia": ["Australia"],
+    "German": ["Switzerland"]
 }
 
 language = st.selectbox("Language", language_options)
@@ -373,3 +374,4 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
+
