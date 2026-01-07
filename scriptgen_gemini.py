@@ -22,7 +22,8 @@ def is_asian_language(language):
         "Korean",
         "Traditional Chinese",
         "Mandarin Chinese",
-        "Cantonese Hong Kong"
+        "Cantonese Hong Kong",
+        "Cantonese Chinese"
     ]
 
 
@@ -75,7 +76,7 @@ language_options = [
     "Cantonese Hong Kong", "Spanish Mexico", "Italian",
     "French France", "English South Africa", "English India",
     "Portuguese Portugal", "French Canada", "English United Kingdom",
-    "English Australia", "German Switzerland"
+    "English Australia", "German Switzerland", "Cantonese Chinese"
 ]
 
 dialect_options = {
@@ -100,7 +101,8 @@ dialect_options = {
     "French Canada": ["Canada"],
     "English United Kingdom": ["United Kingdom"],
     "English Australia": ["Australia"],
-    "German Switzerland": ["Switzerland"]
+    "German Switzerland": ["Switzerland"],
+    "Cantonese Chinese": ["Chinese"]
 }
 
 language = st.selectbox("Language", language_options)
@@ -374,5 +376,6 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
+
 
 
