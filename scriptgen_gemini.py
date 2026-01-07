@@ -23,7 +23,8 @@ def is_asian_language(language):
         "Traditional Chinese",
         "Mandarin Chinese",
         "Cantonese Hong Kong",
-        "Cantonese Chinese"
+        "Cantonese Chinese",
+        "Chinese Hong Kong"
     ]
 
 
@@ -45,6 +46,8 @@ def get_target_range(language, duration):
             return (7000, 9000)
         elif duration == "55":
             return (9500, 11500)
+        elif duration == "6":
+            return (12000, 14000)
     else:
         if duration == "21":
             return (2100, 2500)
@@ -54,6 +57,8 @@ def get_target_range(language, duration):
             return (4100, 4800)
         elif duration == "55":
             return (5500, 6500)
+        elif duration == "6":
+            return (7200, 8400)
 
 
 # --------------------------------------------------
@@ -76,7 +81,7 @@ language_options = [
     "Cantonese Hong Kong", "Spanish Mexico", "Italian",
     "French France", "English South Africa", "English India",
     "Portuguese Portugal", "French Canada", "English United Kingdom",
-    "English Australia", "German Switzerland", "Cantonese Chinese"
+    "English Australia", "German Switzerland", "Cantonese Chinese", "Chinese Hong Kong"
 ]
 
 dialect_options = {
@@ -102,7 +107,8 @@ dialect_options = {
     "English United Kingdom": ["United Kingdom"],
     "English Australia": ["Australia"],
     "German Switzerland": ["Switzerland"],
-    "Cantonese Chinese": ["Chinese"]
+    "Cantonese Chinese": ["Chinese"],
+    "Chinese Hong Kong": ["Hong Kong"],
 }
 
 language = st.selectbox("Language", language_options)
@@ -115,7 +121,7 @@ topic = st.text_input("Topic")
 
 duration = st.selectbox(
     "Script Duration (minutes)",
-    ["21", "31", "41", "55"]
+    ["21", "31", "41", "55", "6"]
 )
 
 speakers = st.selectbox(
@@ -156,6 +162,11 @@ def generate_script(topic, language, dialect, duration, speakers, domain):
             length_anchor = "10,500 characters"
             min_target = 9500
             max_target = 11500
+        elif duration == "6":
+            length_target = "approximately 12,000 to 14,000 characters"
+            length_anchor = "13,000 characters"
+            min_target = 12000
+            max_target = 14000
         unit = "characters"
     else:
         if duration == "21":
@@ -178,6 +189,11 @@ def generate_script(topic, language, dialect, duration, speakers, domain):
             length_anchor = "6,000 words"
             min_target = 5500
             max_target = 6500
+        elif duration == "6":
+            length_target = "7200 to 8400 words"
+            length_anchor = "7,800 words"
+            min_target = 7200
+            max_target = 8400
         unit = "words"
 
     prompt = f"""
@@ -376,6 +392,3 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
-
-
-
