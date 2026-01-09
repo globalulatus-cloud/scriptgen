@@ -204,7 +204,7 @@ def generate_script(topic, language, dialect, duration, speakers, domain):
             length_anchor = "630 words"
             min_target = 600
             max_target = 660
-        elif duration == "6":
+        elif duration == "13":
             length_target = "1200 to 1320 words"
             length_anchor = "1280 words"
             min_target = 1200
@@ -409,6 +409,7 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
+
 
 
 
