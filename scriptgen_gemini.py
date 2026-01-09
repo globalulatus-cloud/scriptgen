@@ -48,6 +48,9 @@ def get_target_range(language, duration):
             return (9500, 11500)
         elif duration == "6":
             return (1140, 1200)
+    elif duration == "13":
+            return (2240, 2400)
+    
     else:
         if duration == "21":
             return (2100, 2500)
@@ -59,7 +62,8 @@ def get_target_range(language, duration):
             return (5500, 6500)
         elif duration == "6":
             return (600, 660)
-
+elif duration == "13":
+            return (1200, 1320)
 
 # --------------------------------------------------
 # API key input
@@ -168,6 +172,11 @@ def generate_script(topic, language, dialect, duration, speakers, domain):
             length_anchor = "1,170 characters"
             min_target = 1140
             max_target = 1200
+         elif duration == "13":
+            length_target = "approximately 2,280 to 2,400 characters"
+            length_anchor = "3,500 characters"
+            min_target = 2280
+            max_target = 2400
         unit = "characters"
     else:
         if duration == "21":
@@ -195,6 +204,11 @@ def generate_script(topic, language, dialect, duration, speakers, domain):
             length_anchor = "630 words"
             min_target = 600
             max_target = 660
+        elif duration == "6":
+            length_target = "1200 to 1320 words"
+            length_anchor = "1200 words"
+            min_target = 1200
+            max_target = 1320
         unit = "words"
 
     prompt = f"""
@@ -395,6 +409,7 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
+
 
 
 
