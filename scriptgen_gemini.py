@@ -47,8 +47,6 @@ def get_target_range(language, duration):
         elif duration == "55":
             return (9500, 11500)
         elif duration == "6":
-            return (1140, 1200)
-    elif duration == "13":
             return (2280, 2400)
     
     else:
@@ -61,9 +59,8 @@ def get_target_range(language, duration):
         elif duration == "55":
             return (5500, 6500)
         elif duration == "6":
-            return (600, 660)
-        elif duration == "13":
             return (1200, 1320)
+
 
 # --------------------------------------------------
 # API key input
@@ -126,7 +123,7 @@ topic = st.text_input("Topic")
 
 duration = st.selectbox(
     "Script Duration (minutes)",
-    ["21", "31", "41", "55","6","13"]
+    ["21", "31", "41", "55","6"]
 )
 
 speakers = st.selectbox(
@@ -168,13 +165,8 @@ def generate_script(topic, language, dialect, duration, speakers, domain):
             min_target = 9500
             max_target = 11500
         elif duration == "6":
-            length_target = "approximately 1,140 to 1,200 characters"
-            length_anchor = "1,170 characters"
-            min_target = 1140
-            max_target = 1200
-         elif duration == "13":
             length_target = "approximately 2,280 to 2,400 characters"
-            length_anchor = "3,500 characters"
+            length_anchor = "2,350 characters"
             min_target = 2280
             max_target = 2400
         unit = "characters"
@@ -200,11 +192,6 @@ def generate_script(topic, language, dialect, duration, speakers, domain):
             min_target = 5500
             max_target = 6500
         elif duration == "6":
-            length_target = "600 to 660 words"
-            length_anchor = "630 words"
-            min_target = 600
-            max_target = 660
-        elif duration == "13":
             length_target = "1200 to 1320 words"
             length_anchor = "1280 words"
             min_target = 1200
@@ -409,11 +396,3 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
-
-
-
-
-
-
-
-
