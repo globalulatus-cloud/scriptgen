@@ -49,7 +49,7 @@ def get_target_range(language, duration):
         elif duration == "6":
             return (1140, 1200)
     elif duration == "13":
-            return (2240, 2400)
+            return (2280, 2400)
     
     else:
         if duration == "21":
@@ -62,7 +62,7 @@ def get_target_range(language, duration):
             return (5500, 6500)
         elif duration == "6":
             return (600, 660)
-elif duration == "13":
+        elif duration == "13":
             return (1200, 1320)
 
 # --------------------------------------------------
@@ -206,7 +206,7 @@ def generate_script(topic, language, dialect, duration, speakers, domain):
             max_target = 660
         elif duration == "6":
             length_target = "1200 to 1320 words"
-            length_anchor = "1200 words"
+            length_anchor = "1280 words"
             min_target = 1200
             max_target = 1320
         unit = "words"
@@ -409,6 +409,7 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
+
 
 
 
