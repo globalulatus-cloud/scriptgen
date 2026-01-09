@@ -122,7 +122,7 @@ topic = st.text_input("Topic")
 
 duration = st.selectbox(
     "Script Duration (minutes)",
-    ["21", "31", "41", "55","85", "6","13"]
+    ["21", "31", "41", "55","6","13"]
 )
 
 speakers = st.selectbox(
@@ -395,6 +395,7 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
+
 
 
 
