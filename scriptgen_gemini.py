@@ -41,11 +41,11 @@ def get_target_range(language, duration):
         if duration == "21":
             return (3500, 4500)
         elif duration == "31":
-            return (5200, 6500)
+            return (7200, 8500)
         elif duration == "41":
             return (7000, 9000)
         elif duration == "55":
-            return (9500, 11500)
+            return (11500, 13500)
         elif duration == "6":
             return (2280, 2400)
     
@@ -53,11 +53,11 @@ def get_target_range(language, duration):
         if duration == "21":
             return (2100, 2500)
         elif duration == "31":
-            return (3100, 3600)
+            return (5100, 5600)
         elif duration == "41":
             return (4100, 4800)
         elif duration == "55":
-            return (5500, 6500)
+            return (7500, 8500)
         elif duration == "6":
             return (1200, 1320)
 
@@ -150,20 +150,20 @@ def generate_script(topic, language, dialect, duration, speakers, domain):
             min_target = 3500
             max_target = 4500
         elif duration == "31":
-            length_target = "approximately 5,200 to 6,500 characters"
-            length_anchor = "6,000 characters"
-            min_target = 5200
-            max_target = 6500
+            length_target = "approximately 7,200 to 8,500 characters"
+            length_anchor = "8,000 characters"
+            min_target = 7200
+            max_target = 8500
         elif duration == "41":
             length_target = "approximately 7,000 to 9,000 characters"
             length_anchor = "8,200 characters"
             min_target = 7000
             max_target = 9000
         elif duration == "55":
-            length_target = "approximately 9,500 to 11,500 characters"
-            length_anchor = "10,500 characters"
-            min_target = 9500
-            max_target = 11500
+            length_target = "approximately 11,500 to 13,500 characters"
+            length_anchor = "13,000 characters"
+            min_target = 11500
+            max_target = 13500
         elif duration == "6":
             length_target = "approximately 2,280 to 2,400 characters"
             length_anchor = "2,350 characters"
@@ -177,20 +177,20 @@ def generate_script(topic, language, dialect, duration, speakers, domain):
             min_target = 2100
             max_target = 2500
         elif duration == "31":
-            length_target = "3100 to 3600 words"
-            length_anchor = "3,300 words"
-            min_target = 3100
-            max_target = 3600
+            length_target = "5100 to 5600 words"
+            length_anchor = "5,300 words"
+            min_target = 5100
+            max_target = 5600
         elif duration == "41":
             length_target = "4100 to 4800 words"
             length_anchor = "4,500 words"
             min_target = 4100
             max_target = 4800
         elif duration == "55":
-            length_target = "5500 to 6500 words"
-            length_anchor = "6,000 words"
-            min_target = 5500
-            max_target = 6500
+            length_target = "7500 to 8500 words"
+            length_anchor = "8,000 words"
+            min_target = 7500
+            max_target = 8500
         elif duration == "6":
             length_target = "1200 to 1320 words"
             length_anchor = "1280 words"
@@ -260,7 +260,7 @@ REMEMBER: The script MUST be {length_target}. Keep writing until you reach this 
     # Check length and extend if needed
     current_length, _ = get_length_metrics(script, language)
     attempts = 0
-    max_attempts = 3
+    max_attempts = 5
     
     while current_length < min_target and attempts < max_attempts:
         st.info(f"Script length: {current_length:,} {unit}. Extending... (Attempt {attempts + 1}/{max_attempts})")
@@ -396,3 +396,4 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
+
