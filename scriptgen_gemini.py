@@ -281,6 +281,7 @@ IMPORTANT:
 - Do NOT summarize or rush to conclude
 - Let the conversation develop naturally
 - Only end when you've added enough content
+- The total speech output must not exceed 50,000 characters. Please adjust spacing and content length accordingly.
 
 Current script:
 {script}
@@ -399,5 +400,6 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
+
 
 
