@@ -242,6 +242,9 @@ STRUCTURE:
 5. End with a natural closing only after meeting the length requirement
 6. Ensure that you give consistant format, which means there should be a space after each speakers conversation.
 7. Ensure that you give language and dilet specific names accurately to speaker A & Speaker B in the conversation.
+8. If 21 minutes is selected, the speech should be delivered for a minimum of 21 minutes. If 41 minutes is selected, the speech should be delivered for a minimum of 41 minutes. If 6 minutes is selected, the speech should be delivered for a minimum of 6 minutes.
+9. The total speech output must not exceed 50,000 characters. Please adjust spacing and content length accordingly.
+
 
 FORBIDDEN:
 - Do NOT use narrative descriptions like *pauses* or [smiles]
@@ -396,4 +399,5 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
+
 
