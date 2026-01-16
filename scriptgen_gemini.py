@@ -110,7 +110,7 @@ dialect_options = {
     "German Switzerland": ["Switzerland"],
     "Cantonese Chinese": ["Chinese"],
     "Chinese Hong Kong": ["Hong Kong"],
-    "English Scotland":["Scotland"]
+    "English Scotland":["Scotland"],
     "English Wales":["Wales"]
 }
 
@@ -401,6 +401,7 @@ if generate:
             file_name="script.pdf",
             mime="application/pdf",
         )
+
 
 
 
